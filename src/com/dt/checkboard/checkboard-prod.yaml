@@ -1,0 +1,732 @@
+# 点检看板配置文件 - 正式服（prod）
+# 由总控文件 checkboard.yaml（active: prod）启用；支持 5 秒热加载。
+# 说明：数字编码（如 "0"、"1"、"00"）请保持加引号，避免被解析为数字引发阅读歧义。
+
+title: 点检看板
+forms:
+
+  # 1. 叉车日常点检（整表 1 格；人员字段已删除，改取设备责任人 field006）
+  - key: forklift
+    name: 叉车日常点检
+    table: edc_uf_table1166
+    dateField: field007
+    timeField: field071
+    inspectorField: field006
+    units:
+      - code: ALL
+        label: 叉车
+    results:
+      - field: field009
+        label: 点检结果
+        labels:
+          "0": 全部正常
+          "1": 有异常项
+    normal: ["0", 全部正常]
+    items:
+      - field: field010
+        label: 1.大灯，转向灯，喇叭工作是否正常
+        imageField: field042
+        remarkField: field045
+        normal: ["0", √]
+      - field: field013
+        label: 2.后视镜完整，视角良好
+        imageField: field044
+        remarkField: field046
+        normal: ["0", √]
+      - field: field015
+        label: 3.倒车蜂鸣器工作正常
+        imageField: field047
+        remarkField: field048
+        normal: ["0", √]
+      - field: field017
+        label: 4.机油(电池)指示、温度指示是否正常
+        imageField: field049
+        remarkField: field050
+        normal: ["0", √]
+      - field: field019
+        label: 5.方向盘转动灵活无异常
+        imageField: field051
+        remarkField: field052
+        normal: ["0", √]
+      - field: field021
+        label: 6.手刹车、脚刹车性能良好
+        imageField: field053
+        remarkField: field054
+        normal: ["0", √]
+      - field: field023
+        label: 7.车辆外观无明显擦痕、无渗油
+        imageField: field055
+        remarkField: field056
+        normal: ["0", √]
+      - field: field025
+        label: 8.铲齿定位销定位可靠、安全
+        imageField: field057
+        remarkField: field058
+        normal: ["0", √]
+      - field: field027
+        label: 9.轮胎是否无较大裂痕、固定螺栓完好无缺失
+        imageField: field059
+        remarkField: field060
+        normal: ["0", √]
+      - field: field029
+        label: 10.各运动部件均无异常情况
+        imageField: field061
+        remarkField: field062
+        normal: ["0", √]
+      - field: field031
+        label: 11.车辆关闭状态，并停在规定区域
+        imageField: field063
+        remarkField: field064
+        normal: ["0", √]
+      - field: field033
+        label: 12.各部件均停放到位
+        imageField: field065
+        remarkField: field066
+        normal: ["0", √]
+      - field: field035
+        label: 13.叉车外观是否清洁
+        imageField: field067
+        remarkField: field068
+        normal: ["0", √]
+      - field: field037
+        label: 14.充电是否正常和异响
+        imageField: field069
+        remarkField: field070
+        normal: ["0", √]
+    imageUrl: "{ctx}/api/checkboard/image?id={id}"
+
+  # 2. 焊机点检（2 格；注意第 3 项 option key 2=停机维修中、3=异常处理完，与其余项相反）
+  - key: welder
+    name: 焊机点检
+    table: edc_uf_table1168
+    dateField: field002
+    timeField: field003
+    inspectorField: field001
+    unitField: field023
+    unitMatch: exact
+    units:
+      - code: "0"
+        label: 1号焊机
+      - code: "1"
+        label: 2号焊机
+    results:
+      - field: field013
+        label: 点检结果
+        labels:
+          "0": 全部正常
+          "1": 有不正常项
+    normal: ["0", 全部正常]
+    items:
+      - field: field014
+        label: 1.焊机外壳PE线接线正确，连接可靠
+        remarkField: field024
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "5", 节假日停机, "4", 停用]
+      - field: field015
+        label: 2.禁止使用氧气、乙炔等易燃易爆气体管道作为接地装置
+        remarkField: field025
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field016
+        label: 3.焊机一次侧电源线长度不超过3m并且无破损
+        remarkField: field026
+        normal: ["0", 正常, "3", 异常处理完, "2", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field017
+        label: 4.焊机二次线连接良好，接头不超过3个
+        remarkField: field027
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field018
+        label: 5.焊钳夹紧力好，绝缘可靠，隔热层完好
+        remarkField: field028
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field019
+        label: 6.焊机使用场所清洁，无严重粉尘，周围无易燃易爆物
+        remarkField: field029
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field020
+        label: 7.严禁利用厂房金属结构、管道、轨道等作为焊接二次回路使
+        remarkField: field030
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field021
+        label: 8.电源线、焊接电缆与焊机连接处的裸露接线板的安全防护罩或防护板是否完整
+        remarkField: field031
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+
+  # 3. 产线自检（4 格；10 项均为不合格数量 count: true，field041/field057~065 为处理措施）
+  - key: line
+    name: 产线自检
+    table: edc_uf_table1165
+    dateField: field004
+    timeField: field010
+    inspectorField: field069
+    unitField: field008
+    unitMatch: exact
+    units:
+      - code: "0"
+        label: 1线
+      - code: "1"
+        label: 2线
+      - code: "2"
+        label: 3线
+      - code: "3"
+        label: 4线
+    results:
+      - field: field029
+        label: 点检结果
+        labels:
+          "0": 全部合格
+          "1": 有不合格项
+    normal: ["0", 全部合格]
+    items:
+      - field: field040
+        label: 长度偏差
+        remarkField: field041
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+      - field: field048
+        label: 压痕
+        remarkField: field057
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+      - field: field049
+        label: 起皱
+        remarkField: field058
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+      - field: field050
+        label: 划伤
+        remarkField: field059
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+      - field: field051
+        label: 裂纹
+        remarkField: field060
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+      - field: field052
+        label: 凹坑
+        remarkField: field061
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+      - field: field053
+        label: 零件未切断
+        remarkField: field062
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+      - field: field054
+        label: 孔未冲穿
+        remarkField: field063
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+      - field: field055
+        label: 孔变形
+        remarkField: field064
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+      - field: field056
+        label: 其他
+        remarkField: field065
+        remarkLabel: 处理措施
+        normal: ["0", "00"]
+        count: true
+
+  # 4. 天车点检（3 格；双结果字段；正式数据设备名称常写「桥式起重机T」，靠 matchFields[field006] 线别兜底）
+  - key: crane
+    name: 天车点检
+    table: edc_uf_table1176
+    dateField: field041
+    timeField: field042
+    inspectorField: field001
+    unitField: field004
+    unitMatch: contains
+    matchFields: [field006]
+    units:
+      - code: "1"
+        label: 1号天车
+        keywords: ["1", 一, 1号, 一号, 1线, 一线]
+      - code: "2"
+        label: 2号天车
+        keywords: ["2", 二, 2号, 二号, 2线, 二线]
+      - code: "3"
+        label: 3号天车
+        keywords: ["3", 三, 3号, 三号, 3线, 三线]
+    results:
+      - field: field005
+        label: 起重机
+        labels:
+          "0": 全部正常
+          "1": 有不正常项
+      - field: field028
+        label: 钢丝绳
+        labels:
+          "0": 全部正常
+          "1": 有不正常项
+    normal: ["0", 全部正常]
+    items:
+      - field: field008
+        label: "1. 壳体\\开关\\按钮外观（判定标准：完好）"
+        remarkField: field009
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field010
+        label: "2. 急停\\按钮功能（判定标准：有效）"
+        remarkField: field011
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field014
+        label: 3. 上升限位功能（判定标准：有效）
+        remarkField: field015
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field016
+        label: 4. 额定负荷试吊（判定标准：无滑钩）
+        remarkField: field017
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field018
+        label: 5. 钩头、防脱钩装置及防护罩（判定标准：无损坏）
+        remarkField: field019
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field020
+        label: "6. 动滑轮组\\定滑轮组（判定标准：无脱槽\\掉茬）"
+        remarkField: field021
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field022
+        label: 7. 钩头开到底，观察钢丝绳（判定标准：无断股）
+        remarkField: field023
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field024
+        label: "8. 大车运行情况（判定标准：平稳\\无异常）"
+        remarkField: field025
+        normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
+      - field: field029
+        label: 1. 整根钢丝绳断股检查（判定标准：无断股）
+        remarkField: field030
+        normal: ["0", 良好]
+      - field: field031
+        label: 2. 钢丝绳表面高温、腐蚀、麻点、死角拧扭及绳芯外露检查（判定标准：良好无外露）
+        remarkField: field032
+        normal: ["0", 良好]
+      - field: field033
+        label: 3. 钢丝绳节距断丝数检查（判定标准：未达一个节距断丝20-26根）
+        remarkField: field034
+        normal: ["0", 良好]
+      - field: field035
+        label: 4. 钢丝径向磨损腐蚀量检查（判定标准：磨损腐蚀未超原直径40%）
+        remarkField: field036
+        normal: ["0", 良好]
+      - field: field037
+        label: 5. 死折、生锈、腐蚀检查（判定标准：无死折、生锈、腐蚀）
+        remarkField: field038
+        normal: ["0", 良好]
+      - field: field039
+        label: 6. 载重标识牌检查（判定标准：完好清晰）
+        remarkField: field040
+        normal: ["0", 良好]
+
+  # 5. 机械压力点检（4 格；双结果：压力机 17 项 + 模具 9 项）
+  - key: press
+    name: 机械压力点检
+    table: edc_uf_table1170
+    dateField: field007
+    timeField: field008
+    inspectorField: field001
+    unitField: field002
+    unitMatch: contains
+    units:
+      - code: "1"
+        label: 1号压力机
+        keywords: ["1", 一, 1号, 一号, 1线, 一线]
+      - code: "2"
+        label: 2号压力机
+        keywords: ["2", 二, 2号, 二号, 2线, 二线]
+      - code: "3"
+        label: 3号压力机
+        keywords: ["3", 三, 3号, 三号, 3线, 三线]
+      - code: "4"
+        label: 4号压力机
+        keywords: ["4", 四, 4号, 四号, 4线, 四线]
+    results:
+      - field: field009
+        label: 压力机
+        labels:
+          "0": 全部正常
+          "1": 有不正常项
+      - field: field010
+        label: 模具
+        labels:
+          "0": 全部正常
+          "1": 有不正常项
+    normal: ["0", 全部正常]
+    items:
+      - field: field052
+        label: 1. 外围防护（判定标准：无破损/无变形）
+        remarkField: field081
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field053
+        label: 2. 安全栓及其电气连锁（判定标准：齐全/无变形）
+        remarkField: field082
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field054
+        label: 3. 光电装置、急停按钮（判定标准：齐全/可用）
+        imageField: field083
+        remarkField: field084
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field061
+        label: 4. 屏、按钮、指示灯、表（判定标准：无异常/无损坏）
+        imageField: field085
+        remarkField: field086
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field055
+        label: 5. 台面、导轨、底座（判定标准：清洁/无异物）
+        imageField: field087
+        remarkField: field088
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field056
+        label: 6. 夹爪、防护罩（判定标准：齐全/无损坏）
+        remarkField: field089
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field057
+        label: 7. 铰链盖板（判定标准：无破损/无缺失）
+        remarkField: field090
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field058
+        label: 8. 废料盖板（判定标准：无变形/无开焊）
+        remarkField: field091
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field059
+        label: 9. 总气源压力（判定标准：≥0.55MPa）
+        imageField: field092
+        remarkField: field093
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field060
+        label: 10. 插头、插座（判定标准：完好）
+        remarkField: field094
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field043
+        label: 11. 液压保护压力（判定标准：大于8MPa）
+        imageField: field095
+        remarkField: field096
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field062
+        label: 12. 气压垫运行状态（判定标准：动作无异常）
+        remarkField: field097
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field063
+        label: 13. ★检查滑块制动角度（判定标准：不大于5°）
+        remarkField: field098
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field064
+        label: 14. 运行声音（判定标准：无异常噪音）
+        remarkField: field099
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field065
+        label: 15. 运行状态（判定标准：无卡阻/无异响）
+        remarkField: field100
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field066
+        label: 16. 门体（判定标准：无变形/无损坏）
+        remarkField: field101
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field067
+        label: 17. 每周末设备保养（判定标准：见保养标准）
+        remarkField: field102
+        normal: ["0", o（正常）, "2", △（异常处理完）, "3", "-（停机维修中）", "4", T（生产停机）]
+      - field: field070
+        label: 1. 模具台车上下表面（判定标准：检查无异物、无料豆）
+        imageField: field103
+        remarkField: field104
+        normal: ["0", o（正常）, "2", T（休息）]
+      - field: field071
+        label: 2. 台面四角固定螺丝（判定标准：固定锁紧）
+        imageField: field105
+        remarkField: field106
+        normal: ["0", o（正常）, "2", T（休息）]
+      - field: field072
+        label: 3. 模具一二级废料滑道（滑板安装）（判定标准：开启）
+        remarkField: field107
+        normal: ["0", o（正常）, "2", T（休息）]
+      - field: field073
+        label: 4. 模具上、下垫板螺丝（判定标准：紧固）
+        remarkField: field108
+        normal: ["0", o（正常）, "2", T（休息）]
+      - field: field074
+        label: 5. 模具台车上下表面（判定标准：检查无异物、无料豆）
+        remarkField: field109
+        normal: ["0", o（正常）, "2", T（休息）]
+      - field: field075
+        label: 6. 台面四角固定螺丝（判定标准：松开）
+        remarkField: field110
+        normal: ["0", o（正常）, "2", T（休息）]
+      - field: field076
+        label: 7. 模具二级废料滑道（滑板安装）（判定标准：关闭）
+        remarkField: field111
+        normal: ["0", o（正常）, "2", T（休息）]
+      - field: field077
+        label: 8. 模具内可视区（判定标准：检查无异物、无料豆）
+        remarkField: field112
+        normal: ["0", o（正常）, "2", T（休息）]
+      - field: field078
+        label: 9. 模具底部（判定标准：检查无料豆）
+        remarkField: field113
+        normal: ["0", o（正常）, "2", T（休息）]
+    imageUrl: "{ctx}/api/checkboard/image?id={id}"
+
+  # 6. 视觉设备点检（3 格：0=开机、1=换线、2=交班）
+  - key: vision
+    name: 视觉设备点检
+    table: edc_uf_table1169
+    dateField: field004
+    timeField: field041
+    inspectorField: field001
+    unitField: field003
+    unitMatch: exact
+    units:
+      - code: "0"
+        label: 开机
+      - code: "1"
+        label: 换线
+      - code: "2"
+        label: 交班
+    results:
+      - field: field002
+        label: 点检结果
+        labels:
+          "0": 全部正常
+          "1": 有不正常项
+    normal: ["0", 全部正常]
+    items:
+      - field: field005
+        label: 1.遥控手柄是否按键正常，屏幕显示有反应
+        imageField: field019
+        remarkField: field020
+        normal: ["0", 正常, "2", 停机]
+      - field: field006
+        label: 2.显示屏幕无破损、脏物，无花屏现象
+        imageField: field021
+        remarkField: field022
+        normal: ["0", 正常, "2", 停机]
+      - field: field007
+        label: 3.摄像头等连接接头无松动，所有接头连接可靠
+        imageField: field023
+        remarkField: field024
+        normal: ["0", 正常, "2", 停机]
+      - field: field008
+        label: 4.探测光源正常亮
+        imageField: field025
+        remarkField: field026
+        normal: ["0", 正常, "2", 停机]
+      - field: field009
+        label: 5.电机电器系统
+        imageField: field027
+        remarkField: field028
+        normal: ["0", 正常, "2", 停机]
+      - field: field010
+        label: 6.开机空转时有无异响
+        imageField: field029
+        remarkField: field030
+        normal: ["0", 正常, "2", 停机]
+      - field: field011
+        label: 7.链条同步皮带松紧适度，无缺损
+        imageField: field031
+        remarkField: field032
+        normal: ["0", 正常, "2", 停机]
+      - field: field012
+        label: 8.设备位置无松动
+        imageField: field033
+        remarkField: field034
+        normal: ["0", 正常, "2", 停机]
+      - field: field013
+        label: 9.限位开关是否灵敏可靠
+        imageField: field035
+        remarkField: field036
+        normal: ["0", 正常, "2", 停机]
+      - field: field014
+        label: 10.电柜箱散热风扇是否正常运作
+        imageField: field037
+        remarkField: field038
+        normal: ["0", 正常, "2", 停机]
+      - field: field015
+        label: 11.点检完成确认电柜箱门及时关闭
+        imageField: field039
+        remarkField: field040
+        normal: ["0", 正常, "2", 停机]
+    imageUrl: "{ctx}/api/checkboard/image?id={id}"
+
+  # 7. 辊压线设备点检（4 格；注意第 13 项未生产 key 为 "4"，其余项为 "3"）
+  - key: rollerline
+    name: 辊压线设备点检
+    table: edc_uf_table1172
+    dateField: field023
+    timeField: field024
+    inspectorField: field001
+    unitField: field004
+    unitMatch: contains
+    matchFields: [field002]
+    units:
+      - code: "1"
+        label: 1号机台
+        keywords: ["1", 一, 1号, 一号, 1线, 一线]
+      - code: "2"
+        label: 2号机台
+        keywords: ["2", 二, 2号, 二号, 2线, 二线]
+      - code: "3"
+        label: 3号机台
+        keywords: ["3", 三, 3号, 三号, 3线, 三线]
+      - code: "4"
+        label: 4号机台
+        keywords: ["4", 四, 4号, 四号, 4线, 四线]
+    results:
+      - field: field006
+        label: 点检结果
+        labels:
+          "0": 全部正常
+          "1": 有不正常项
+    normal: ["0", 全部正常]
+    items:
+      - field: field007
+        label: 1. 操作柜按钮版（判定标准：显示正常、功能正常各元器件无松动功能正常）
+        remarkField: field026
+        normal: ["0", √, "3", /（未生产）]
+      - field: field008
+        label: 2. 油水分离（判定标准：功能正常，清理接油盒）
+        remarkField: field027
+        normal: ["0", √, "3", /（未生产）]
+      - field: field009
+        label: 3. 废料过滤网（判定标准：功能正常，清理废料）
+        remarkField: field028
+        normal: ["0", √, "3", /（未生产）]
+      - field: field010
+        label: 4. 减速机（判定标准：运转平稳无异响，连接稳固）
+        remarkField: field029
+        normal: ["0", √, "3", /（未生产）]
+      - field: field011
+        label: 5. 主电机（判定标准：运转平稳无异响，连接稳固）
+        remarkField: field030
+        normal: ["0", √, "3", /（未生产）]
+      - field: field012
+        label: 6. 传动机构（判定标准：运转平稳无异响，连接稳固，万向轴无损坏）
+        remarkField: field031
+        normal: ["0", √, "3", /（未生产）]
+      - field: field013
+        label: 7. 切料机（判定标准：功能正常，无漏油）
+        remarkField: field032
+        normal: ["0", √, "3", /（未生产）]
+      - field: field014
+        label: "8. 液压机（判定标准：无漏油，油位>油箱1/2）"
+        remarkField: field033
+        normal: ["0", √, "3", /（未生产）]
+      - field: field015
+        label: 9. 水冷机（判定标准：功能正常无报警，无漏水）
+        remarkField: field034
+        normal: ["0", √, "3", /（未生产）]
+      - field: field016
+        label: 10. 激光控制（判定标准：功能正常无报警，无漏水）
+        remarkField: field035
+        normal: ["0", √, "3", /（未生产）]
+      - field: field017
+        label: 11. 气压表（判定标准：压力正常0.4Mpa-0.6Mpa）
+        remarkField: field036
+        normal: ["0", √, "3", /（未生产）]
+      - field: field018
+        label: 12. 工作结束后机床6S（判定标准：清理机床，整理工具，打扫机床周边卫生）
+        remarkField: field037
+        normal: ["0", √, "3", /（未生产）]
+      - field: field019
+        label: 13. 液压站电机、散热器（判定标准：散热器、电机无明显积尘）
+        remarkField: field038
+        normal: ["0", √, "4", /（未生产）]
+      - field: field020
+        label: 14. 冷水机（判定标准：散热翅片，顶部风机无明显积尘）
+        remarkField: field039
+        normal: ["0", √, "3", /（未生产）]
+      - field: field021
+        label: 15. 除尘机（判定标准：除尘机清理灰尘）
+        remarkField: field040
+        normal: ["0", √, "3", /（未生产）]
+
+  # 8. 辊压轮组点检（整表 1 格）
+  - key: rollgroup
+    name: 辊压轮组点检
+    table: edc_uf_table1180
+    dateField: field027
+    timeField: field028
+    inspectorField: field001
+    units:
+      - code: ALL
+        label: 轮组
+    results:
+      - field: field003
+        label: 点检结果
+        labels:
+          "0": 正常
+          "1": 有不正常项
+    normal: ["0", 正常]
+    items:
+      - field: field017
+        label: 1. 轮组位置（判定标准：轮组放置顺序无错误）
+        imageField: field006
+        remarkField: field007
+        normal: ["0", 正常, "2", 假日]
+      - field: field018
+        label: 2. 清洁度（判定标准：所有辊轮表面清洁无油污）
+        imageField: field009
+        remarkField: field010
+        normal: ["0", 正常, "2", 假日]
+      - field: field019
+        label: 3. 滚轮压型部位（判定标准：无破损、变形、凹凸不平）
+        imageField: field012
+        remarkField: field013
+        normal: ["0", 正常, "2", 假日]
+      - field: field020
+        label: 4. 轮组装配螺栓（判定标准：无松动、轮组无松旷现象）
+        imageField: field015
+        remarkField: field016
+        normal: ["0", 正常, "2", 假日]
+      - field: field021
+        label: 5. 轮组安装（判定标准：安装螺栓紧固到位，方向正确）
+        imageField: field022
+        remarkField: field023
+        normal: ["0", 正常, "2", 假日]
+      - field: field024
+        label: 6. 高度标尺（判定标准：辊轮高度标尺刻度清晰、完整）
+        imageField: field025
+        remarkField: field026
+        normal: ["0", 正常, "2", 假日]
+    imageUrl: "{ctx}/api/checkboard/image?id={id}"
+
+  # 9. 关键过程参数（纯记录表，无结果字段，仅判当天有无记录）
+  - key: params
+    name: 关键过程参数
+    table: edc_uf_table1175
+    dateField: field002
+    timeField: field003
+    inspectorField: field001
+    units:
+      - code: ALL
+        label: 今日记录
+
+  # 10. 异常品质反馈（纯记录表，无结果字段，仅判当天有无记录）
+  - key: quality
+    name: 异常品质反馈
+    table: edc_uf_table1174
+    dateField: field002
+    timeField: field003
+    inspectorField: field001
+    units:
+      - code: ALL
+        label: 今日反馈
+
+  # 11. 车间交接班（纯记录表；人员在子表，主表取提交人 modedatacreater 与 modedatacreatetime）
+  - key: handover
+    name: 车间交接班
+    table: edc_uf_table1173
+    dateField: field002
+    timeField: modedatacreatetime
+    inspectorField: modedatacreater
+    units:
+      - code: ALL
+        label: 今日交接

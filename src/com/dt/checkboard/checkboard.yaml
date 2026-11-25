@@ -1,0 +1,11 @@
+# 点检看板总控配置
+# 通过 active 切换当前启用的环境配置（修改后 5 秒内自动热加载，无需重启 E9）
+#   - test : 测试服配置（checkboard-test.yaml）
+#   - prod : 正式服配置（checkboard-prod.yaml）
+# 提示：当前默认启用 test 方便测试服测试；上正式服前请将 active 改为 prod。
+
+active: test
+
+profiles:
+  prod: checkboard-prod.yaml
+  test: checkboard-test.yaml
