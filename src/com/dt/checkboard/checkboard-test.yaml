@@ -151,19 +151,18 @@ forms:
         remarkField: field031
         normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
 
-  # 3. 产线自检（测试服表 edc_uf_table1111；测试服点检人为 field009 操作员，不同于正式服 field069；10 项 count: true）
+  # 3. 产线自检（测试服表 edc_uf_table1111；已同步最新表单：点检人 field069、未开线开关 field070=1；10 项 count: true）
   - key: line
     name: 产线自检
     table: edc_uf_table1111
     dateField: field004
     timeField: field010
-    inspectorField: field009
+    inspectorField: field069
     unitField: field008
     unitMatch: exact
-    # 若测试服产线表也新增了「是否开线」字段，请取消下面三行注释并核对实际列名
-    # offField: field070
-    # offValues: ["1", 未开线]
-    # offLabel: 未开线
+    offField: field070
+    offValues: ["1", 未开线]
+    offLabel: 未开线
     units:
       - code: "0"
         label: 1线
