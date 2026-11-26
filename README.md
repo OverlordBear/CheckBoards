@@ -19,6 +19,7 @@
 | **done（已检）** | 该单位当天至少有 1 条记录 | 不看条数、班次、点检人 |
 | **bad（异常）** | 任一结果字段非空，且不在正常值白名单里 | 多结果表任一异常即整格异常 |
 | **empty（结果未填）** | 任一结果字段为空 | 单独标记，不算好也不算坏 |
+| **off（未开线）** | 命中 `offField` 指定的 `offValues` | 仍计入已检，不再判结果未填或异常 |
 | **late（补录）** | `modedatacreatedate > 点检日期` | 只标记，仍算完成 |
 | **orphan（未登记编号）** | 单位字段的值匹配不上任何应检单位 | 只提示，不占格 |
 
@@ -182,17 +183,16 @@
 
 ## 六、配置
 
-配置文件采用「总控 + 环境分离」结构，支持 `checkboard.yaml`（优先）、`checkboard.yml` 与过渡期保留的 `checkboard.json`：
+配置文件采用「总控 + 环境分离」结构，仅支持 `.yaml` 格式：
 
 - `checkboard.yaml`：总控配置，通过 `active` 选择启用的环境（`test` / `prod`），由 `profiles` 映射到对应配置文件。
 - `checkboard-prod.yaml`：正式服 11 张点检表配置（`title: 点检看板`）。
 - `checkboard-test.yaml`：测试服 11 张点检表配置（`title: 点检看板（测试服）`），与正式服隔离，可独立修改测试。
-- `checkboard.json`：原正式服 JSON 配置，过渡期保留作兜底，YAML 测试稳定后可移除。
 
 查找顺序：
 
-1. `{weaver.root}/classbean/com/dt/checkboard/` 下的 `checkboard.yaml` → `checkboard.yml` → `checkboard.json`
-2. classpath 下 `com/dt/checkboard/` 同顺序查找
+1. `{weaver.root}/classbean/com/dt/checkboard/checkboard.yaml`
+2. classpath 下 `/com/dt/checkboard/checkboard.yaml`
 
 总控文件与当前激活的环境配置文件均每 5 秒检查一次路径与 mtime，**切换 `active` 或改环境配置都不需要重启**。新配置校验不通过时保留上一版，错误通过页面横幅和 `/config` 暴露。
 
@@ -205,6 +205,9 @@
 | `unitField` | 否 | 单位字段；留空表示整表 1 格 |
 | `unitMatch` | 否 | `exact`（默认）/ `contains` |
 | `matchFields` | 否 | 参与包含匹配的附加文本字段 |
+| `offField` | 否 | 未开线/停线开关字段；命中 `offValues` 时不判结果未填或异常 |
+| `offValues` | 配了 `offField` 必填 | 视作未开线的值列表（如 `["1", "未开线"]`） |
+| `offLabel` | 否 | 看板与明细展示文案（默认 `未开线`） |
 | `units[]` | 是 | `code`、`label`、`keywords`（contains 用） |
 | `results[]` | 否 | `field`、`label`、`labels`、`normal`；支持多个 |
 | `normal` | 结果表必填 | 全局正常值白名单 |
@@ -216,7 +219,7 @@
 
 ### 维护方式
 
-`checkboard-prod.yaml` / `checkboard-test.yaml`（及过渡期保留的 `checkboard.json`）现在由人工维护，不再依赖生成脚本；`checkboard.yaml` 仅负责通过 `active` 切换启用哪一套。
+`checkboard-prod.yaml` / `checkboard-test.yaml` 现在由人工维护，不再依赖生成脚本；`checkboard.yaml` 仅负责通过 `active` 切换启用哪一套。
 
 表单改了以后：
 
@@ -248,7 +251,6 @@
    - `classbean/com/dt/checkboard/checkboard.yaml`（总控）
    - `classbean/com/dt/checkboard/checkboard-prod.yaml`（正式服）
    - `classbean/com/dt/checkboard/checkboard-test.yaml`（测试服）
-   - `classbean/com/dt/checkboard/checkboard.json`（过渡期保留）
    - `classbean/com/dt/checkboard/index.html`
 
    IDE 经常不复制非 java 文件，覆盖 `com` 后单独看一眼。
@@ -309,7 +311,6 @@ src/com/dt/checkboard/
   checkboard.yaml                           总控配置（active 切换 prod/test）
   checkboard-prod.yaml                      正式服看板配置
   checkboard-test.yaml                      测试服看板配置
-  checkboard.json                           旧版正式服配置（过渡期保留）
   index.html                                单文件看板
 正式服点检表数据/                            正式服 E9 导出，仅作字段对照（不再参与生成）
 测试服点检表数据/                            测试服 E9 导出，仅作字段对照（不再参与生成）

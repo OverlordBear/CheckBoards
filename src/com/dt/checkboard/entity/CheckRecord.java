@@ -22,6 +22,7 @@ public class CheckRecord {
     public boolean abnormal;
     public boolean emptyResult;
     public boolean late;
+    public boolean off;
 
     /** 与 FormSpec.items 一一对应的原始值。 */
     public String[] itemValues = new String[0];

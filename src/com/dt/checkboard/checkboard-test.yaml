@@ -160,6 +160,10 @@ forms:
     inspectorField: field009
     unitField: field008
     unitMatch: exact
+    # 若测试服产线表也新增了「是否开线」字段，请取消下面三行注释并核对实际列名
+    # offField: field070
+    # offValues: ["1", 未开线]
+    # offLabel: 未开线
     units:
       - code: "0"
         label: 1线

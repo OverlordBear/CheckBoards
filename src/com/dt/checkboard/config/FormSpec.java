@@ -40,6 +40,15 @@ public final class FormSpec {
     /** 结果字段，可以有两个（天车：起重机 + 钢丝绳）。 */
     public List<ResultField> results = new ArrayList<ResultField>();
 
+    /** 停线/未开线标记字段，可为空。命中 offValues 时视作未开线，不再判结果未填或异常。 */
+    public String offField = "";
+
+    /** 视作未开线/停线的值列表（如 ["1", "未开线"]）。 */
+    public List<String> offValues = new ArrayList<String>();
+
+    /** 未开线状态在看板与明细中的展示文案。 */
+    public String offLabel = "未开线";
+
     /** 全局正常值白名单；每个结果/点检项可以有自己的白名单。 */
     public List<String> normal = new ArrayList<String>();
 
@@ -67,6 +76,14 @@ public final class FormSpec {
 
     public boolean hasResult() {
         return results != null && !results.isEmpty();
+    }
+
+    public boolean hasOffField() {
+        return offField != null && !offField.isEmpty();
+    }
+
+    public boolean isOffValue(String raw) {
+        return hasOffField() && raw != null && !raw.isEmpty() && offValues.contains(raw);
     }
 
     /** 只判「有没有记录」的记录表：没有结果字段，也不展开异常项。 */

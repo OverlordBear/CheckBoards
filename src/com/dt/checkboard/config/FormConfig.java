@@ -1,5 +1,4 @@
 package com.dt.checkboard.config;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.dt.common.util.LogUtil;
@@ -20,10 +19,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /*
- * 看板配置加载器。
- * <p>查找顺序：{weaver.root}/classbean/com/dt/checkboard/ 下依次查找
- * checkboard.yaml → checkboard.yml → checkboard.json，均不存在时回退到
- * classpath:/com/dt/checkboard/ 下同顺序查找。</p>
+ * 看板配置加载器（仅支持 .yaml）。
+ * <p>查找顺序：{weaver.root}/classbean/com/dt/checkboard/checkboard.yaml
+ * → classpath:/com/dt/checkboard/checkboard.yaml。</p>
  *
  * <p>支持总控模式与单文件模式：若 YAML 包含 {@code active} / {@code profiles}，则视为总控配置，
  * 根据 {@code active} 映射到同目录（或 classpath）下的目标配置文件（如 {@code checkboard-prod.yaml}、
@@ -34,8 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class FormConfig {
 
-    public static final String FILE_NAME = "checkboard.json";
-    private static final String[] FILE_NAMES = {"checkboard.yaml", "checkboard.yml", FILE_NAME};
+    public static final String FILE_NAME = "checkboard.yaml";
 
     private static final long CHECK_INTERVAL_MS = 5000L;
 
@@ -155,25 +152,7 @@ public final class FormConfig {
     }
 
     private static ConfigSource resolveMaster() {
-        String root = System.getProperty("weaver.root", "/data/weaver/ecology");
-        File dir = new File(root, "classbean/com/dt/checkboard");
-        for (String name : FILE_NAMES) {
-            File f = new File(dir, name);
-            if (f.isFile()) {
-                return new ConfigSource(f, null, "文件 " + f.getAbsolutePath(),
-                        "file:" + f.getAbsolutePath(), f.lastModified(), isYamlName(name));
-            }
-        }
-        for (String name : FILE_NAMES) {
-            String[] paths = {"/com/dt/checkboard/" + name, "/" + name};
-            for (String path : paths) {
-                if (FormConfig.class.getResource(path) != null) {
-                    return new ConfigSource(null, path, "classpath:" + name,
-                            "classpath:" + path, 0L, isYamlName(name));
-                }
-            }
-        }
-        return null;
+        return resolveFileByName(FILE_NAME);
     }
 
     private static ConfigSource resolveFileByName(String name) {
@@ -181,20 +160,16 @@ public final class FormConfig {
         File f = new File(root, "classbean/com/dt/checkboard/" + name);
         if (f.isFile()) {
             return new ConfigSource(f, null, "文件 " + f.getAbsolutePath(),
-                    "file:" + f.getAbsolutePath(), f.lastModified(), isYamlName(name));
+                    "file:" + f.getAbsolutePath(), f.lastModified());
         }
         String[] paths = {"/com/dt/checkboard/" + name, "/" + name};
         for (String path : paths) {
             if (FormConfig.class.getResource(path) != null) {
                 return new ConfigSource(null, path, "classpath:" + name,
-                        "classpath:" + path, 0L, isYamlName(name));
+                        "classpath:" + path, 0L);
             }
         }
         return null;
-    }
-
-    private static boolean isYamlName(String name) {
-        return name.endsWith(".yaml") || name.endsWith(".yml");
     }
 
     private static boolean isSafeConfigFileName(String name) {
@@ -204,20 +179,18 @@ public final class FormConfig {
         if (name.contains("/") || name.contains("\\") || name.contains("..")) {
             return false;
         }
-        String lower = name.toLowerCase();
-        return lower.endsWith(".yaml") || lower.endsWith(".yml") || lower.endsWith(".json");
+        return name.toLowerCase().endsWith(".yaml");
     }
 
     private static Snapshot load(ConfigSource master) {
         Snapshot snap = new Snapshot();
         snap.version = VERSION.incrementAndGet();
         if (master == null) {
-            snap.source = "未找到 checkboard.yaml / " + FILE_NAME;
+            snap.source = "未找到 " + FILE_NAME;
             snap.sourceKey = "none";
             snap.masterKey = "none";
             snap.targetKey = "none";
-            snap.errors.add("没有找到 checkboard.yaml 或 " + FILE_NAME
-                    + "，请放在 classbean/com/dt/checkboard/ 下");
+            snap.errors.add("没有找到 " + FILE_NAME + "，请放在 classbean/com/dt/checkboard/ 下");
             snap.loadedAt = nowString();
             return snap;
         }
@@ -235,9 +208,9 @@ public final class FormConfig {
             return snap;
         }
         try {
-            JSONObject root = master.yaml ? parseYamlRoot(text, snap) : parseJsonRoot(text, snap);
+            JSONObject root = parseYamlRoot(text, snap);
             if (root != null) {
-                if (master.yaml && isMasterConfig(root)) {
+                if (isMasterConfig(root)) {
                     loadFromMaster(root, snap);
                 } else {
                     parseFormsRoot(root, snap);
@@ -281,7 +254,7 @@ public final class FormConfig {
         }
         if (!isSafeConfigFileName(targetName)) {
             snap.errors.add("环境 \"" + active + "\" 的配置文件名不合法: " + targetName
-                    + "（仅支持同目录下的 .yaml/.yml/.json 文件）");
+                    + "（仅支持同目录下的 .yaml 文件）");
             return;
         }
 
@@ -306,9 +279,7 @@ public final class FormConfig {
         if (targetText == null) {
             return;
         }
-        JSONObject targetRoot = target.yaml
-                ? parseYamlRoot(targetText, snap)
-                : parseJsonRoot(targetText, snap);
+        JSONObject targetRoot = parseYamlRoot(targetText, snap);
         if (targetRoot == null) {
             return;
         }
@@ -378,21 +349,6 @@ public final class FormConfig {
             list.add(f);
         }
         snap.forms = list;
-    }
-
-    private static JSONObject parseJsonRoot(String text, Snapshot snap) {
-        JSONObject root;
-        try {
-            root = JSON.parseObject(text);
-        } catch (Exception e) {
-            snap.errors.add("JSON 语法错误: " + e.getMessage());
-            return null;
-        }
-        if (root == null) {
-            snap.errors.add("配置内容为空");
-            return null;
-        }
-        return root;
     }
 
     private static JSONObject parseYamlRoot(String text, Snapshot snap) {
@@ -505,6 +461,30 @@ public final class FormConfig {
         }
         if (!"exact".equalsIgnoreCase(f.unitMatch) && !"contains".equalsIgnoreCase(f.unitMatch)) {
             errs.add("unitMatch 只能是 exact 或 contains");
+        }
+
+        f.offField = trim(o.getString("offField"));
+        String offLabel = trim(o.getString("offLabel"));
+        if (!offLabel.isEmpty()) {
+            f.offLabel = offLabel;
+        }
+        if (!f.offField.isEmpty() && !ident(f.offField)) {
+            errs.add("offField 只能包含字母、数字、下划线");
+        }
+        JSONArray ova = o.getJSONArray("offValues");
+        if (ova != null) {
+            for (int i = 0; i < ova.size(); i++) {
+                String ov = trim(ova.getString(i));
+                if (!ov.isEmpty() && !f.offValues.contains(ov)) {
+                    f.offValues.add(ov);
+                }
+            }
+        }
+        if (!f.offField.isEmpty() && f.offValues.isEmpty()) {
+            errs.add("配了 offField 就必须配 offValues（例如 [\"1\", \"未开线\"]）");
+        }
+        if (f.offField.isEmpty()) {
+            f.offValues.clear();
         }
 
         JSONArray mfa = o.getJSONArray("matchFields");
@@ -835,15 +815,13 @@ public final class FormConfig {
         final String label;
         final String key;
         final long mtime;
-        final boolean yaml;
 
-        ConfigSource(File file, String classpath, String label, String key, long mtime, boolean yaml) {
+        ConfigSource(File file, String classpath, String label, String key, long mtime) {
             this.file = file;
             this.classpath = classpath;
             this.label = label;
             this.key = key;
             this.mtime = mtime;
-            this.yaml = yaml;
         }
     }
 

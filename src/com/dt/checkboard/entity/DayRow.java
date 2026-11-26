@@ -17,6 +17,8 @@ public final class DayRow {
     public String time = "";
     /** 各个结果字段的原始值，顺序与 FormSpec.results 一致。 */
     public String[] results = new String[0];
+    /** 是否未开线/停产。 */
+    public boolean off;
     /** modedatacreatedate，用于判断补录。 */
     public String createdDate = "";
     public String inspectorId = "";

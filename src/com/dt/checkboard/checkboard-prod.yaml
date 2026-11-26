@@ -150,7 +150,7 @@ forms:
         remarkField: field031
         normal: ["0", 正常, "2", 异常处理完, "3", 停机维修中, "4", 节假日停机, "5", 停用]
 
-  # 3. 产线自检（4 格；10 项均为不合格数量 count: true，field041/field057~065 为处理措施）
+  # 3. 产线自检（4 格；field070=1 为未开线；10 项均为不合格数量 count: true，field041/field057~065 为处理措施）
   - key: line
     name: 产线自检
     table: edc_uf_table1165
@@ -159,6 +159,9 @@ forms:
     inspectorField: field069
     unitField: field008
     unitMatch: exact
+    offField: field070
+    offValues: ["1", 未开线]
+    offLabel: 未开线
     units:
       - code: "0"
         label: 1线

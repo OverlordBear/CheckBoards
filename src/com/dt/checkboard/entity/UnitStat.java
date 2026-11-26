@@ -19,6 +19,9 @@ public class UnitStat {
     /** 补录（创建日期晚于点检日期）的记录条数。 */
     public int late;
 
+    /** 未开线/停产的记录条数。 */
+    public int off;
+
     /** 最晚一条记录的时间。 */
     public String last = "";
 

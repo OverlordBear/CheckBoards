@@ -69,6 +69,7 @@ public class BoardService {
         int required = 0;
         int done = 0;
         int bad = 0;
+        int off = 0;
         int late = 0;
 
         Map<String, Person> people = new LinkedHashMap<String, Person>();
@@ -88,6 +89,7 @@ public class BoardService {
             int fDone = 0;
             int fBad = 0;
             int fEmpty = 0;
+            int fOff = 0;
             int fLate = 0;
             int fRecords = 0;
             int orphan = 0;
@@ -123,12 +125,16 @@ public class BoardService {
                     }
                     boolean rowBad = false;
                     boolean rowEmpty = false;
-                    for (int i = 0; i < f.results.size(); i++) {
-                        String v = i < row.results.length ? row.results[i] : "";
-                        if (v.isEmpty()) {
-                            rowEmpty = true;
-                        } else if (!f.normalOf(i).contains(v)) {
-                            rowBad = true;
+                    if (row.off) {
+                        s.off++;
+                    } else {
+                        for (int i = 0; i < f.results.size(); i++) {
+                            String v = i < row.results.length ? row.results[i] : "";
+                            if (v.isEmpty()) {
+                                rowEmpty = true;
+                            } else if (!f.normalOf(i).contains(v)) {
+                                rowBad = true;
+                            }
                         }
                     }
                     if (rowBad) {
@@ -145,6 +151,7 @@ public class BoardService {
                 for (FormSpec.Unit u : f.units) {
                     UnitStat s = byUnit.get(u.code);
                     boolean isDone = s != null;
+                    boolean isOff = isDone && s.off > 0 && s.off == s.count;
                     JSONObject c = new JSONObject();
                     c.put("code", u.code);
                     c.put("label", u.label);
@@ -152,6 +159,10 @@ public class BoardService {
                     c.put("count", isDone ? s.count : 0);
                     c.put("bad", isDone && s.bad > 0);
                     c.put("empty", isDone && s.empty > 0);
+                    c.put("off", isOff);
+                    if (isOff) {
+                        c.put("offLabel", f.offLabel);
+                    }
                     c.put("late", isDone && s.late > 0);
                     c.put("last", isDone ? shortTime(s.last) : "");
                     cells.add(c);
@@ -165,6 +176,9 @@ public class BoardService {
                         if (s.empty > 0) {
                             fEmpty++;
                         }
+                        if (isOff) {
+                            fOff++;
+                        }
                         if (s.late > 0) {
                             fLate++;
                         }
@@ -175,12 +189,17 @@ public class BoardService {
 
                 done += fDone;
                 bad += fBad;
+                off += fOff;
                 late += fLate;
 
                 item.put("done", fDone);
                 item.put("records", fRecords);
                 item.put("bad", fBad);
                 item.put("empty", fEmpty);
+                item.put("off", fOff);
+                if (fOff > 0) {
+                    item.put("offLabel", f.offLabel);
+                }
                 item.put("late", fLate);
                 item.put("orphan", orphan);
                 item.put("missing", missing);
@@ -190,6 +209,7 @@ public class BoardService {
                 item.put("done", 0);
                 item.put("records", 0);
                 item.put("bad", 0);
+                item.put("off", 0);
                 item.put("late", 0);
                 item.put("orphan", 0);
                 item.put("missing", new JSONArray());
@@ -204,6 +224,7 @@ public class BoardService {
         total.put("done", done);
         total.put("missing", Math.max(0, required - done));
         total.put("bad", bad);
+        total.put("off", off);
         total.put("late", late);
         total.put("records", personRows);
 
@@ -292,6 +313,10 @@ public class BoardService {
                 o.put("unitLabel", r.unit.isEmpty() || !f.hasUnitField() ? "" : f.labelOf(r.unit));
                 o.put("abnormal", r.abnormal);
                 o.put("empty", r.emptyResult);
+                o.put("off", r.off);
+                if (r.off) {
+                    o.put("offLabel", f.offLabel);
+                }
                 o.put("late", r.late);
                 o.put("createdDate", r.createdDate);
 
@@ -304,7 +329,7 @@ public class BoardService {
                     ro.put("label", rf.label);
                     ro.put("value", v);
                     ro.put("valueLabel", label == null ? v : label);
-                    ro.put("abnormal", !v.isEmpty() && !f.normalOf(i).contains(v));
+                    ro.put("abnormal", !r.off && !v.isEmpty() && !f.normalOf(i).contains(v));
                     results.add(ro);
                 }
                 if (!results.isEmpty()) {
@@ -316,28 +341,30 @@ public class BoardService {
                 }
 
                 JSONArray abnormalItems = new JSONArray();
-                for (int i = 0; i < f.items.size(); i++) {
-                    FormSpec.Item item = f.items.get(i);
-                    String v = i < r.itemValues.length ? r.itemValues[i] : "";
-                    List<String> itemNormal = item.normal.isEmpty() ? f.normal : item.normal;
-                    if (v.isEmpty() || itemNormal.contains(v)) {
-                        continue;
+                if (!r.off) {
+                    for (int i = 0; i < f.items.size(); i++) {
+                        FormSpec.Item item = f.items.get(i);
+                        String v = i < r.itemValues.length ? r.itemValues[i] : "";
+                        List<String> itemNormal = item.normal.isEmpty() ? f.normal : item.normal;
+                        if (v.isEmpty() || itemNormal.contains(v)) {
+                            continue;
+                        }
+                        JSONObject it = new JSONObject();
+                        it.put("label", item.label);
+                        it.put("value", v);
+                        it.put("count", item.count);
+                        it.put("remarkLabel", item.remarkLabel);
+                        String rawImage = i < r.itemImages.length ? r.itemImages[i] : "";
+                        JSONArray itemPics = images(rawImage, f.imageUrl);
+                        if (!itemPics.isEmpty()) {
+                            it.put("images", itemPics);
+                        }
+                        String itemRemark = i < r.itemRemarks.length ? r.itemRemarks[i] : "";
+                        if (!itemRemark.isEmpty()) {
+                            it.put("remark", itemRemark);
+                        }
+                        abnormalItems.add(it);
                     }
-                    JSONObject it = new JSONObject();
-                    it.put("label", item.label);
-                    it.put("value", v);
-                    it.put("count", item.count);
-                    it.put("remarkLabel", item.remarkLabel);
-                    String rawImage = i < r.itemImages.length ? r.itemImages[i] : "";
-                    JSONArray itemPics = images(rawImage, f.imageUrl);
-                    if (!itemPics.isEmpty()) {
-                        it.put("images", itemPics);
-                    }
-                    String itemRemark = i < r.itemRemarks.length ? r.itemRemarks[i] : "";
-                    if (!itemRemark.isEmpty()) {
-                        it.put("remark", itemRemark);
-                    }
-                    abnormalItems.add(it);
                 }
                 o.put("abnormalItems", abnormalItems);
                 o.put("itemTotal", f.items.size());

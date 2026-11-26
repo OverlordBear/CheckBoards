@@ -40,6 +40,9 @@ public class CheckBoardDao {
         for (int i = 0; i < f.results.size(); i++) {
             cols.append(", r.").append(f.results.get(i).field).append(" AS r").append(i);
         }
+        if (f.hasOffField()) {
+            cols.append(", r.").append(f.offField).append(" AS roff");
+        }
         cols.append(", r.modedatacreatedate AS rcreate")
                 .append(", r.").append(f.inspectorField).append(" AS rins")
                 .append(", h.lastname AS rname");
@@ -71,6 +74,7 @@ public class CheckBoardDao {
                 for (int i = 0; i < f.results.size(); i++) {
                     row.results[i] = str(rs.getString("r" + i)).trim();
                 }
+                row.off = f.hasOffField() && f.isOffValue(str(rs.getString("roff")).trim());
                 row.createdDate = str(rs.getString("rcreate")).trim();
                 row.inspectorId = str(rs.getString("rins")).trim();
                 row.inspector = str(rs.getString("rname")).trim();
@@ -105,6 +109,9 @@ public class CheckBoardDao {
         }
         for (int i = 0; i < f.results.size(); i++) {
             cols.append(", r.").append(f.results.get(i).field).append(" AS r").append(i);
+        }
+        if (f.hasOffField()) {
+            cols.append(", r.").append(f.offField).append(" AS roff");
         }
         cols.append(", r.modedatacreatedate AS rcreate");
         for (int i = 0; i < f.items.size(); i++) {
@@ -151,6 +158,7 @@ public class CheckBoardDao {
                 for (int i = 0; i < matchCols.size(); i++) {
                     r.unitParts[i] = str(rs.getString("u" + i)).trim();
                 }
+                r.off = f.hasOffField() && f.isOffValue(str(rs.getString("roff")).trim());
                 r.createdDate = str(rs.getString("rcreate")).trim();
                 r.resultValues = new String[f.results.size()];
                 r.abnormal = false;
@@ -158,10 +166,12 @@ public class CheckBoardDao {
                 for (int i = 0; i < f.results.size(); i++) {
                     String v = str(rs.getString("r" + i)).trim();
                     r.resultValues[i] = v;
-                    if (v.isEmpty()) {
-                        r.emptyResult = true;
-                    } else if (!f.normalOf(i).contains(v)) {
-                        r.abnormal = true;
+                    if (!r.off) {
+                        if (v.isEmpty()) {
+                            r.emptyResult = true;
+                        } else if (!f.normalOf(i).contains(v)) {
+                            r.abnormal = true;
+                        }
                     }
                 }
                 r.result = r.resultValues.length > 0 ? r.resultValues[0] : "";
@@ -215,6 +225,9 @@ public class CheckBoardDao {
         }
         for (FormSpec.ResultField rf : f.results) {
             sql.append(", r.").append(rf.field);
+        }
+        if (f.hasOffField()) {
+            sql.append(", r.").append(f.offField);
         }
         for (FormSpec.Item it : f.items) {
             sql.append(", r.").append(it.field);

@@ -44,6 +44,7 @@
   .pill.none { background: #F1EFE8; color: #888780; }
   .pill.warn { background: #FAEEDA; color: #854F0B; }
   .pill.bad { background: #FCEBEB; color: #A32D2D; }
+  .pill.off { background: #EEF2F6; color: #475569; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .chip { border: .5px solid rgba(0,0,0,.1); background: #fff; border-radius: 8px;
           padding: 6px 10px; font-size: 12px; color: #1f2329; cursor: pointer;
@@ -57,6 +58,8 @@
   .chip.bad i { background: #E24B4A; }
   .chip.res-empty { background: #FAEEDA; border-color: rgba(133,79,11,.2); color: #854F0B; }
   .chip.res-empty i { background: #EF9F27; }
+  .chip.off { background: #F4F6F9; border-color: rgba(71,85,105,.22); color: #475569; }
+  .chip.off i { background: #94A3B8; }
   .chip em { font-style: normal; color: #9aa0a6; font-size: 11px; }
   .foot-row { display: flex; align-items: center; justify-content: space-between;
               flex-wrap: wrap; gap: 6px 8px; margin-top: 8px; }
@@ -101,6 +104,7 @@
   .tag { font-size: 10px; padding: 1px 6px; border-radius: 20px; background: #F1EFE8;
          color: #888780; margin-left: 6px; }
   .tag.late { background: #FAEEDA; color: #854F0B; }
+  .tag.off { background: #EEF2F6; color: #475569; margin-left: 0; }
   .items { margin-top: 8px; padding-top: 8px; border-top: .5px solid rgba(0,0,0,.07); }
   .items-t { font-size: 11px; color: #A32D2D; margin-bottom: 2px; }
   .item { padding: 3px 0; }
@@ -324,9 +328,13 @@
         ? '<span class="pill ok">已记录</span>'
         : '<span class="pill none">未记录</span>';
     } else if (required > 0 && done >= required) {
-      pill = (f.bad || 0) > 0
-        ? '<span class="pill bad">已检齐 · 有异常</span>'
-        : '<span class="pill ok">已检齐</span>';
+      if ((f.bad || 0) > 0) {
+        pill = '<span class="pill bad">已检齐 · 有异常</span>';
+      } else if ((f.off || 0) > 0 && f.off >= done) {
+        pill = '<span class="pill off">' + esc(f.offLabel || '未开线') + '</span>';
+      } else {
+        pill = '<span class="pill ok">已检齐</span>';
+      }
     } else if (done > 0) {
       pill = '<span class="pill warn">差 ' + (required - done) + ' 格</span>';
     } else {
@@ -334,8 +342,11 @@
     }
 
     var chips = (f.cells || []).map(function (c) {
-      var cls = c.done ? (c.bad ? ' bad' : (c.empty ? ' res-empty' : '')) : ' miss';
-      var tail = (c.done && c.count > 1) ? '<em>×' + c.count + '</em>' : '';
+      var cls = c.done ? (c.bad ? ' bad' : (c.empty ? ' res-empty' : (c.off ? ' off' : ''))) : ' miss';
+      var tails = [];
+      if (c.done && c.off) { tails.push(esc(c.offLabel || '未开线')); }
+      if (c.done && c.count > 1) { tails.push('×' + c.count); }
+      var tail = tails.length ? '<em>' + tails.join(' ') + '</em>' : '';
       var attrs = c.done
         ? ' data-key="' + esc(f.key) + '" data-unit="' + esc(c.code) + '" data-label="' + esc(c.label) + '"'
         : '';
@@ -346,6 +357,7 @@
 
     var bits = [];
     if (f.records) { bits.push('记录 ' + f.records + ' 条'); }
+    if (f.off) { bits.push(esc(f.offLabel || '未开线') + ' ' + f.off + ' 格'); }
     if (f.late) { bits.push('补录 ' + f.late + ' 格'); }
     if (f.orphan) { bits.push('<span class="warn">未登记编号 ' + f.orphan + ' 条</span>'); }
     if (f.empty) { bits.push('<span class="warn">结果未填 ' + f.empty + ' 格</span>'); }
@@ -440,13 +452,17 @@
   function row(r) {
     var parts = [];
     if (r.unitLabel) { parts.push(esc(r.unitLabel)); }
-    var rt = resultText(r);
-    if (rt) { parts.push(rt); }
-    else if (r.empty) { parts.push('结果未填'); }
+    if (r.off) {
+      parts.push('<span class="tag off">' + esc(r.offLabel || '未开线') + '</span>');
+    } else {
+      var rt = resultText(r);
+      if (rt) { parts.push(rt); }
+      else if (r.empty) { parts.push('结果未填'); }
+    }
     if (r.late) { parts.push('<span class="tag late">补录</span>'); }
     if (r.createdDate) { parts.push('创建 ' + esc(r.createdDate)); }
 
-    var items = r.abnormalItems || [];
+    var items = r.off ? [] : (r.abnormalItems || []);
     var itemHtml = '';
     if (items.length) {
       itemHtml = '<div class="items"><div class="items-t">异常项 ' + items.length
@@ -460,7 +476,7 @@
               + (it.remark ? '<div class="item-note">' + esc(noteLabel) + '：' + esc(it.remark) + '</div>' : '')
               + pics(it.images) + '</div>';
           }).join('') + '</div>';
-    } else if (r.abnormal) {
+    } else if (!r.off && r.abnormal) {
       var note;
       if (r.itemTotal > 0) {
         note = '总结果为异常，但未发现具体异常项（明细可能未填）';
